@@ -27,8 +27,40 @@ To run the project.
 run:
 
 ```bash
+change SESSION_DRIVER=database to SESSION_DRIVER=file in .env
+```
+
+```bash
 php artisan serve
 ```
+
+Configure Database in .env file
+```bash
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=your database name(Example: capstonell-Backend)
+DB_USERNAME=your database username(Example: root)
+DB_PASSWORD=your database password(Example: '')
+```
+
+Configure the JWT
+```bash
+php artisan install:api
+composer require tymon/jwt-auth
+php artisan vendor:publish --provider="Tymon\JWTAuth\Providers\LaravelServiceProvider"
+php artisan jwt:secret
+```
+
+Configure Roles and Permissions
+```bash
+ composer require spatie/laravel-permission
+ php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider" (optional)
+ php artisan optimize
+ php artisan migrate
+```
+
+
 
 ## About Laravel
 
