@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('commission_id');
             $table->date('adjustment_date');
-            $table->datetimes('duration');
+            $table->datetime('duration');
             $table->text('message');
             $table->timestamps();
         });
