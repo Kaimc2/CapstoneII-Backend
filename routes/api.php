@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DesignController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -13,5 +14,6 @@ Route::prefix('auth')->group(function()
    Route::post('/register', [AuthController::class, 'register']);
     Route::group(['middleware' => 'jwt.auth'], function () {
         Route::apiResource('roles', RoleController::class);
+        Route::apiResource('designs', DesignController::class);
     });
 });
