@@ -13,7 +13,7 @@ class DesignController extends Controller
     {
         try {
             $search = $request->input('search', '');
-            $item_per_page = $request->input('item_per_page', Pagination::ITEMS_PER_PAGE);
+            $item_per_page = $request->input('item_per_page', Pagination::ITEMS_PER_PAGE->value);
             $designs = Design::where('name', 'LIKE', "%$search%")
                 ->where('deleted', false)
                 ->paginate($item_per_page);
