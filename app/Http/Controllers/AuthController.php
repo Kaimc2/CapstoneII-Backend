@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -22,17 +23,19 @@ class AuthController extends Controller
             $validated = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
+                'phone_number' => 'required|string',
                 'password' => 'required|string|min:6|confirmed',
             ]);
             if ($validated->fails()) {
                 return response([
                     "message" => $validated->errors()->all(),
-                    'access'=>false
+                    'access' => false
                 ], 422);
             }
             $user = User::create([
                 'name' => $request->input('name'),
                 'email' => $request->input('email'),
+                'phone_number' => $request->input('phone_number'),
                 'password' => Hash::make($request->input('password'),),
             ]);
             return response()->json([
@@ -40,9 +43,7 @@ class AuthController extends Controller
                 'message' => 'User created.',
                 'user' => $user,
             ]);
-        }
-        catch (\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error',
                 'message' => $ex->getMessage(),
