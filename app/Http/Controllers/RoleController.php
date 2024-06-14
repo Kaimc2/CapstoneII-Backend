@@ -18,9 +18,7 @@ class RoleController extends Controller
                 'status' => 'Success',
                 'data' => $roles
             ]);
-        }
-        catch (\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'Error catching',
                 'message' => $ex->getMessage(),
@@ -35,8 +33,7 @@ class RoleController extends Controller
             ];
             $inputs = $request->only('name');
             $validation_errors = Validator::make($inputs, $rules);
-            if ($validation_errors->fails())
-            {
+            if ($validation_errors->fails()) {
                 return response()->json([
                     'status' => ' Error validation',
                     'message' => $validation_errors->messages()->all()
@@ -46,8 +43,7 @@ class RoleController extends Controller
                 'name' => $request->input('name'),
                 'guard_name' => 'api'
             ]);
-            if (!$status)
-            {
+            if (!$status) {
                 return response()->json([
                     'status' => 'Error creating',
                     'message' => 'Failed to create role'
@@ -57,10 +53,7 @@ class RoleController extends Controller
                 'status' => 'Success',
                 'message' => 'Role created successfully'
             ]);
-
-        }
-        catch (\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error catching',
                 'message' => $ex->getMessage(),
@@ -75,26 +68,23 @@ class RoleController extends Controller
             ];
             $inputs = $request->input('name');
             $validation_errors = Validator::make($inputs, $rules);
-            if($validation_errors->fails())
-            {
+            if ($validation_errors->fails()) {
                 return response()->json([
                     'status' => 'Error validation',
                     'message' => $validation_errors->errors()->all()
                 ]);
             }
             $existing_role = Role::findById($id)->first();
-            if(!$existing_role)
-            {
+            if (!$existing_role) {
                 return response()->json([
-                    'status' =>'Error',
+                    'status' => 'Error',
                     'message' => 'Data not found!'
                 ], 404);
             }
             $status = Role::fill([
                 'name' => $request->input('name')
             ])->update();
-            if(!$status)
-            {
+            if (!$status) {
                 return response()->json([
                     'status' => 'Error updating role',
                     'message' => 'Roles not updated'
@@ -104,9 +94,7 @@ class RoleController extends Controller
                 'status' => 'Success',
                 'message' => 'Role updated successfully'
             ]);
-        }
-        catch (\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'Error catching',
                 'message' => $ex->getMessage(),

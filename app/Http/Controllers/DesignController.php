@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Pagination;
 use Illuminate\Http\Request;
 use App\Models\Design;
 use Illuminate\Support\Facades\Validator;
+use App\Enums\Pagination;
 
 class DesignController extends Controller
 {
@@ -55,7 +55,6 @@ class DesignController extends Controller
                 'message' => 'Design created successfully',
                 'data' => $design
             ], 201);
-
         } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'Error',
@@ -80,7 +79,6 @@ class DesignController extends Controller
                 'status' => 'Success',
                 'data' => $design
             ], 200);
-
         } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'Error',
@@ -123,7 +121,6 @@ class DesignController extends Controller
                 'message' => 'Design updated successfully',
                 'data' => $design
             ], 200);
-
         } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'Error',
@@ -151,7 +148,6 @@ class DesignController extends Controller
                 'status' => 'Success',
                 'message' => 'Design deleted successfully'
             ], 200);
-
         } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'Error',
