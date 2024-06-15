@@ -1,13 +1,13 @@
 <?php
 namespace App\Http\Controllers;
 use App\Mail\VerifyingEmail;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\MyMail;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
@@ -15,7 +15,6 @@ use Tymon\JWTAuth\Contracts\Providers\Storage;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Facades\DB;
-
 
 class AuthController extends Controller
 {
@@ -29,21 +28,19 @@ class AuthController extends Controller
             ];
             $inputs = $request->only('email', 'password', 'name', 'password_confirmation');
             $validation_error = Validator::make($inputs, $rules);
-            if ($validation_error->fails())
-            {
-                return response([
-                    "message" => $validation_error->errors()->all(),
-                    'access'=>false
+            if ($validation_error->fails()) {
+                return response()->json([
+                    'message' => $validation_error->errors()->all(),
+                    'access' => false
                 ], 422);
             }
             $check_existing_email = DB::table('users')
                 ->where('email', $request->input('email'))
                 ->exists();
-            if($check_existing_email)
-            {
+            if ($check_existing_email) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'This email address already been used'
+                    'message' => 'This email address has already been used'
                 ]);
             }
             Mail::send(new VerifyingEmail($request->input('email'),
@@ -52,38 +49,25 @@ class AuthController extends Controller
             ));
             return response()->json([
                 'status' => 'success',
-                'message' => 'Verified email sent successfully',
-                'input' => $inputs
+                'message' => 'Verification email sent successfully',
             ]);
-//            $user = User::create([
-//                'name' => $request->input('name'),
-//                'email' => $request->input('email'),
-//                'password' => Hash::make($request->input('password')),
-//            ]);
-//            return response()->json([
-//                'access' => true,
-//                'message' => 'User created.',
-//                'user' => $user,
-//
-        }
-        catch (\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error',
                 'message' => $ex->getMessage(),
             ]);
         }
     }
+
     public function verify_email(Request $request)
     {
         try {
             $status_user_registration = User::create([
                 'email' => $request->input('email'),
-                'password' => $request->input('password'),
+                'password' => Hash::make($request->input('password')),
                 'name' => $request->input('name'),
             ]);
-            if (!$status_user_registration)
-            {
+            if (!$status_user_registration) {
                 return response()->json([
                     'status' => 'error verification',
                     'message' => 'Registration failed'
@@ -91,17 +75,16 @@ class AuthController extends Controller
             }
             return response()->json([
                 'status' => 'success verification',
-                'message' => 'Registration successfully'
+                'message' => 'Registration successful'
             ]);
-        }
-        catch (\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error catching exception',
                 'message' => $ex->getMessage(),
             ]);
         }
     }
+
     public function login(Request $request)
     {
         try {
@@ -122,21 +105,22 @@ class AuthController extends Controller
             $credentials = $request->only(['email', 'password']);
             $user = User::where('email', $credentials['email'])->first();
 
-            if ($user) {
-                // Check login attempts
+            if ($user) 
+            {
                 $attempts = $user->login_attempts;
                 $lastAttemptTime = $user->last_login_attempt_at;
-                $lockoutTime = now()->subMinutes(15); // 15 minutes lockout period
+                $lockoutTime = now()->subMinutes(15);
 
-                if ($attempts >= 3 && $lastAttemptTime > $lockoutTime) {
+                if ($attempts >= 3 && $lastAttemptTime > $lockoutTime)
+                {
                     return response()->json([
                         'status' => 'error',
                         'message' => 'Too many login attempts. Please try again later.'
                     ], 429);
                 }
 
-                if (!$token = JWTAuth::attempt($credentials)) {
-                    // Update login attempts and last attempt time
+                if (!$token = JWTAuth::attempt($credentials))
+                {
                     $user->login_attempts = $attempts + 1;
                     $user->last_login_attempt_at = now();
                     $user->save();
@@ -147,7 +131,6 @@ class AuthController extends Controller
                     ], 401);
                 }
 
-                // Reset login attempts on successful login
                 $user->login_attempts = 0;
                 $user->last_login_attempt_at = null;
                 $user->save();
@@ -157,7 +140,7 @@ class AuthController extends Controller
                 $authentication = $auth;
 
                 return response()->json([
-                    'message' => 'You are login successfully',
+                    'message' => 'You are logged in successfully',
                     'status' => 'success',
                     'data' => $authentication
                 ], 200, [], JSON_NUMERIC_CHECK);
@@ -167,13 +150,16 @@ class AuthController extends Controller
                 'status' => 'error',
                 'message' => 'User not found'
             ], 404);
-        } catch (\Exception $ex) {
+        } 
+        catch (\Exception $ex)
+        {
             return response()->json([
                 'status' => 'error',
                 'message' => $ex->getMessage(),
             ], 500);
         }
     }
+
     public function me()
     {
         $user = auth()->user();
@@ -185,25 +171,20 @@ class AuthController extends Controller
 
         $my_info = $user->makeHidden('permissions', 'roles')->toArray();
 
-
         return response()->json($my_info);
     }
 
-    /**
-     * Log the user out (Invalidate the token).
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function logout()
     {
         auth()->logout();
-
         return response()->json(['message' => 'Successfully logged out']);
     }
+
     public function refresh()
     {
         return $this->respondWithToken(auth()->refresh());
     }
+
     protected function respondWithToken($token)
     {
         return response()->json([
@@ -212,6 +193,7 @@ class AuthController extends Controller
             'expires_in' => auth()->factory()->getTTL() * 60
         ]);
     }
+
     public function forgot_password(Request $request)
     {
         try {
@@ -225,8 +207,7 @@ class AuthController extends Controller
                     'message' => $validation_error->errors()->all(),
                     'email' => $request->email
                 ], 403);
-            }
-            else {
+            } else {
                 $data = User::where('email', $request->email)->first();
                 if ($data) {
                     $resetPasswordInfo = [
@@ -234,74 +215,62 @@ class AuthController extends Controller
                         'token' => Str::random(20),
                     ];
                     $status = DB::table('password_reset_tokens')->where('email', $resetPasswordInfo['email'])->exists();
-                    $t = Mail::send(new MyMail($resetPasswordInfo['token'], $resetPasswordInfo['email']));
-                    if ($status)
-                    {
-                        DB::table('password_reset_tokens')->where('email','=', $resetPasswordInfo['email'])->update($resetPasswordInfo);
+                    Mail::send(new MyMail($resetPasswordInfo['token'], $resetPasswordInfo['email']));
+                    if ($status) {
+                        DB::table('password_reset_tokens')->where('email', $resetPasswordInfo['email'])->update($resetPasswordInfo);
                         return response()->json([
                             'status' => 'success',
                             'message' => 'Email has been sent successfully',
                             'data' => DB::table('password_reset_tokens')->where('email', $resetPasswordInfo['email'])->first()
                         ], 200);
-                    }
-                    else {
+                    } else {
                         DB::table('password_reset_tokens')->insert($resetPasswordInfo);
                         return response()->json([
                             'status' => 'success',
                             'message' => 'Email has been sent successfully',
-                            'status_message' => $t,
                             'data' => DB::table('password_reset_tokens')->where('email', $resetPasswordInfo['email'])->first()
                         ], 200);
                     }
-                }
-                else {
+                } else {
                     return response()->json([
                         'status' => 'error',
-                        'message' => 'email has not been found!'
+                        'message' => 'Email not found!'
                     ], 404);
                 }
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage()
             ]);
         }
     }
+
     public function reset_password(Request $request)
     {
-        try
-        {
+        try {
             $rules = [
-                'password'=>'required|string|min:6|confirmed',
-                'password_confirmation' =>'required|string',
+                'password' => 'required|string|min:6|confirmed',
+                'password_confirmation' => 'required|string',
             ];
             $input = $request->only('password', 'password_confirmation');
 
             $validation_errors = Validator::make($input, $rules);
-            if ($validation_errors->fails())
-            {
+            if ($validation_errors->fails()) {
                 return response()->json([
-                    'status'=>'error validating',
-                    'message'=>$validation_errors->errors()->all()
+                    'status' => 'error validating',
+                    'message' => $validation_errors->errors()->all()
                 ]);
-            }
-            else
-            {
-                $token = DB::table('password_reset_tokens')->where('token','=', $request->token)->first();
-                if ($token)
-                {
-                    $user = User::where('email', '=', $token->email)->first();
-                    if(Hash::check($request->password, $user->password))
-                    {
+            } else {
+                $token = DB::table('password_reset_tokens')->where('token', $request->token)->first();
+                if ($token) {
+                    $user = User::where('email', $token->email)->first();
+                    if (Hash::check($request->password, $user->password)) {
                         return response()->json([
                             'status' => '410',
-                            'message' => 'Please create a new password from previous password'
-                        ], );
-                    }
-                    else
-                    {
+                            'message' => 'Please create a new password different from the previous one'
+                        ]);
+                    } else {
                         $user->password = Hash::make($request->password);
                         $status = $user->save();
                         return response()->json([
@@ -309,17 +278,14 @@ class AuthController extends Controller
                             'message' => 'Your password has been changed',
                         ]);
                     }
-                }
-                else
-                {
+                } else {
                     return response()->json([
                         'status' => '400',
                         'message' => 'Invalid token',
                     ]);
                 }
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status' => 'false',
                 'message' => $e->getMessage()
