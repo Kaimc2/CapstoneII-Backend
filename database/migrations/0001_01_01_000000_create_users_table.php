@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('name')->unique();
             $table->string('profile_picture')->nullable();
             $table->string('email')->unique();
+            $table->integer('login_attempts')->default(0);
+            $table->integer('role_id')->default(3)->nullable();
+            $table->timestamp('last_login_attempt_at')->nullable();
             $table->string('phone_number', 20);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

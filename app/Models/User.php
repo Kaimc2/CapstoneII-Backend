@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\Permission\Models\Role;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -57,7 +58,9 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->getKey();
     }
-
+    public function getRole(){
+        return $this->hasOne(Role::class, 'id', 'role_id');
+    }
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.
      *
