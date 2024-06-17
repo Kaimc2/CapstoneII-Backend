@@ -6,6 +6,7 @@ use App\Enums\Pagination;
 use App\Http\Controllers\Controller;
 use App\Models\Adjustment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class AdjustmentController extends Controller
@@ -59,6 +60,13 @@ class AdjustmentController extends Controller
             }
 
             $design = Adjustment::create($inputs);
+
+            //update complete_date in commissions
+            $updated = DB::table('commissions')
+                ->where('id', $design->commission_id)
+                ->update([
+                    'end_date' => DB::raw("DATE_ADD(end_date, INTERVAL {$design->duration} DAY)")
+            ]);
 
             return response()->json([
                 'status' => 'success',
