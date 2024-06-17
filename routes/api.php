@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AdjustmentController;
+use App\Http\Controllers\CommissionController;
 use App\Http\Controllers\DesignController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +23,8 @@ Route::prefix('auth')->group(function () {
         Route::apiResource('designs', DesignController::class);
         Route::apiResource('tailors', TailorController::class);
         Route::apiResource('permissions', PermissionController::class);
+        Route::apiResource('commissions', CommissionController::class);
+        Route::apiResource('adjustments', AdjustmentController::class);
         Route::apiResource('users', UserController::class);
     });
 });

@@ -2,32 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Design;
+use App\Enums\Pagination;
+use App\Http\Controllers\Controller;
+use App\Models\Adjustment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use App\Enums\Pagination;
 
-class DesignController extends Controller
+class AdjustmentController extends Controller
 {
     public function index(Request $request)
     {
         try {
             $search = $request->input('search');
             $item_per_page = $request->input('item_per_page', Pagination::ITEMS_PER_PAGE->value);
-            $designs = Design::query();
+            $designs = Adjustment::query();
 
             if ($search) {
-//                $designs->where(function($query) use ($search) {
-//                    $query->where('name', 'LIKE', "%$search%")
-//                          ->orWhere('content', 'LIKE', "%$search%")
-//                          ->orWhere('status', 'LIKE', "%$search%");
-//                });
-                $designs->whereAny(['name', 'content', 'status'], 'LIKE', $search)
+                $designs->whereAny(['message'], 'LIKE', $search)
                     ->orderBy('id', 'ASC')
                     ->paginate($item_per_page);
             }
 
-            $data = $designs->orderBy('name', 'asc')->paginate($item_per_page);
+            $data = $designs->orderBy('id', 'asc')->paginate($item_per_page);
 
             return response()->json([
                 'status' => 'success',
@@ -46,10 +42,10 @@ class DesignController extends Controller
     {
         try {
             $rules = [
-                'name' => 'required|string|max:256',
-                'deleted' => 'required|boolean',
-                'content' => 'nullable|string',
-                'status' => 'nullable|string'
+                'commission_id' => 'required|string|max:256',
+                'adjust_date' => 'required|date',
+                'duration' => 'nullable|string',
+                'message' => 'nullable|string'
             ];
 
             $inputs = $request->only('name', 'deleted', 'content', 'status');
@@ -62,7 +58,7 @@ class DesignController extends Controller
                 ], 422);
             }
 
-            $design = Design::create($inputs);
+            $design = Adjustment::create($inputs);
 
             return response()->json([
                 'status' => 'success',
@@ -80,7 +76,7 @@ class DesignController extends Controller
     public function show($id)
     {
         try {
-            $design = Design::find($id);
+            $design = Adjustment::find($id);
 
             if (!$design || $design->deleted) {
                 return response()->json([
@@ -104,7 +100,7 @@ class DesignController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $design = Design::find($id);
+            $design = Adjustment::find($id);
 
             if (!$design || $design->deleted) {
                 return response()->json([
@@ -148,7 +144,7 @@ class DesignController extends Controller
     public function destroy($id)
     {
         try {
-            $design = Design::find($id);
+            $design = Adjustment::find($id);
 
             if (!$design || $design->deleted) {
                 return response()->json([
