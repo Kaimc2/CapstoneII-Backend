@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\StatusNotification;
 use App\Http\Resources\UserResource;
 use App\Mail\MyMail;
 use App\Models\User;
@@ -65,9 +66,15 @@ class AuthController extends Controller
             // Send verification email
             event(new Registered($user));
             $user->assignRole('designer');
+
+            // Authenticate user
+            $token = JWTAuth::fromUser($user);
+            $user->accessToken = $token;
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'User created successfully',
+                'data' => new UserResource($user),
             ]);
         } catch (\Exception $ex) {
             return response()->json([
@@ -149,9 +156,7 @@ class AuthController extends Controller
     {
         try {
             JWTAuth::invalidate(JWTAuth::getToken());
-            return response()->json(['message' => 'Successfully logged out'])
-                ->cookie(Cookie::forget('access_token'))
-                ->cookie(Cookie::forget('refresh_token'));
+            return response()->json(['message' => 'Successfully logged out']);
         } catch (JWTException $ex) {
             return response()->json(['message' => 'Failed to log out, please try again.'], 500);
         }
@@ -190,20 +195,19 @@ class AuthController extends Controller
             $user = User::findOrFail($request->id);
 
             if (!hash_equals((string) $request->hash, sha1($user->getEmailForVerification()))) {
-                return response()->json([
-                    'message' => 'Invalid verification link'
-                ], 400);
+                event(new StatusNotification('Invalid verification link', 'error'));
+                return redirect(env('FRONTEND_URL') . 'account/verify');
             }
 
             if ($user->hasVerifiedEmail()) {
-                return response()->json([
-                    'message' => 'Email already verified'
-                ], 400);
+                event(new StatusNotification('Email already verified', 'normal'));
+                return redirect(env('FRONTEND_URL'));
             }
 
             $user->markEmailAsVerified();
+            event(new StatusNotification('Registration successful', 'success'));
 
-            return redirect('http://localhost:5173/')->with([
+            return redirect(env('FRONTEND_URL'))->with([
                 'status' => 'success',
                 'message' => 'Registration successful'
             ]);

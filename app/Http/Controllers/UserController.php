@@ -15,24 +15,20 @@ class UserController extends Controller
             $search = $request->input('search');
             $item_per_page = $request->input('item_per_page', 5);
             $users = User::with('getRole')->with('getPermission')
-                ->where(function ($query) use ($search)
-                {
+                ->where(function ($query) use ($search) {
                     $query->where('name', 'LIKE', $search)
-                        ->whereHas('getRole', function ($query) use ($search)
-                        {
+                        ->whereHas('getRole', function ($query) use ($search) {
                             $query->where('name', 'LIKE', "%$search%");
                         });
                 })->paginate($item_per_page);
-//            $roles = Role::findById(1)->getPermissionNames();
-//            $permissions = ['permission-list', 'permission-create', 'permission-show', 'permission-delete', 'permission-edit'];
-//            $roles->syncPermissions($permissions);
+            //            $roles = Role::findById(1)->getPermissionNames();
+            //            $permissions = ['permission-list', 'permission-create', 'permission-show', 'permission-delete', 'permission-edit'];
+            //            $roles->syncPermissions($permissions);
             return response()->json([
                 'status' => 'success',
                 'data' => $users,
             ]);
-        }
-        catch (\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error catching',
                 'message' => $ex->getMessage()

@@ -34,6 +34,10 @@ change SESSION_DRIVER=database to SESSION_DRIVER=file in .env
 php artisan serve
 ```
 
+```bash
+php artisan queue:work
+```
+
 Configure Database in .env file
 ```bash
 DB_CONNECTION=mysql

@@ -9,7 +9,6 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TailorController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\UserController;
-use App\Http\Middleware\HasAccessToken;
 
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register'])->name('register');
@@ -18,7 +17,7 @@ Route::prefix('auth')->group(function () {
 
     // Email Verification routes
     Route::get('/email/verify', function () {
-        return redirect('http://localhost:5173/account/verify');
+        return redirect(env('FRONTEND_URL') . 'account/verify');
     })->name('verification.notice');
     Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify_email'])
         ->middleware(['signed'])->name('verification.verify');
