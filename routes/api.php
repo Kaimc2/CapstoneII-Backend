@@ -11,26 +11,27 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\UserController;
 
 Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register'])->name('register');
-    Route::post('/login', [AuthController::class, 'login'])->name('login');
-    Route::post('/logout', [AuthController::class, 'logout'])->name('register');
+    Route::post('register', [AuthController::class, 'register'])->name('register');
+    Route::post('login', [AuthController::class, 'login'])->name('login');
+    Route::post('logout', [AuthController::class, 'logout'])->name('register');
+    Route::post('refresh-token', [AuthController::class, 'refresh']);
 
     // Email Verification routes
-    Route::get('/email/verify', function () {
+    Route::get('email/verify', function () {
         return redirect(env('FRONTEND_URL') . 'account/verify');
     })->name('verification.notice');
-    Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verify_email'])
+    Route::get('email/verify/{id}/{hash}', [AuthController::class, 'verify_email'])
         ->middleware(['signed'])->name('verification.verify');
-    Route::post('/email/verification-notice/{id}', [AuthController::class, 'resend_email'])
+    Route::post('email/verification-notice/{id}', [AuthController::class, 'resend_email'])
         ->middleware(['throttle:6,1'])->name('verification.name');
 
     // Password routes
-    Route::post('/forgot_password', [AuthController::class, 'forgot_password']);
-    Route::post('/reset_password', [AuthController::class, 'reset_password']);
+    Route::post('forgot-password', [AuthController::class, 'forgot_password']);
+    Route::post('reset-password', [AuthController::class, 'reset_password']);
 });
 
 Route::group(['middleware' => ['jwt.auth', 'verified']], function () {
-    Route::get('/profile', [AuthController::class, 'me']);
+    Route::get('profile', [AuthController::class, 'me']);
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('designs', DesignController::class);
     Route::apiResource('tailors', TailorController::class);

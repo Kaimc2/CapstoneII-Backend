@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('tailors', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('tailor_thumbnail');
             $table->string('description')->nullable();
             $table->float('price');
             $table->date('verified_at')->nullable();

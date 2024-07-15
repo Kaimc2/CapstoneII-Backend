@@ -6,6 +6,7 @@ use App\Models\Design;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Enums\Pagination;
+use App\Http\Resources\DesignResource;
 
 class DesignController extends Controller
 {
@@ -15,23 +16,35 @@ class DesignController extends Controller
             $search = $request->input('search');
             $item_per_page = $request->input('item_per_page', Pagination::ITEMS_PER_PAGE->value);
             $designs = Design::query();
+            $user = auth()->user();
 
             if ($search) {
-//                $designs->where(function($query) use ($search) {
-//                    $query->where('name', 'LIKE', "%$search%")
-//                          ->orWhere('content', 'LIKE', "%$search%")
-//                          ->orWhere('status', 'LIKE', "%$search%");
-//                });
+                //                $designs->where(function($query) use ($search) {
+                //                    $query->where('name', 'LIKE', "%$search%")
+                //                          ->orWhere('content', 'LIKE', "%$search%")
+                //                          ->orWhere('status', 'LIKE', "%$search%");
+                //                });
                 $designs->whereAny(['name', 'content', 'status'], 'LIKE', $search)
+                    ->where('user_id', '=', $user->id)
                     ->orderBy('id', 'ASC')
                     ->paginate($item_per_page);
             }
 
-            $data = $designs->orderBy('name', 'asc')->paginate($item_per_page);
+            $data = $designs
+                ->where('user_id', '=', $user->id)
+                ->orderBy('name', 'asc')->paginate($item_per_page);
 
             return response()->json([
                 'status' => 'success',
-                'data' => $data,
+                'data' => DesignResource::collection($data),
+                'meta' => [
+                    'currentPage' => $data->currentPage(),
+                    'from' => $data->firstItem(),
+                    'lastPage' => $data->lastPage(),
+                    'perPage' => $data->perPage(),
+                    'to' => $data->lastItem(),
+                    'total' => $data->total(),
+                ],
                 'message' => 'Data has been retrieved successfully'
             ]);
         } catch (\Exception $e) {
@@ -47,12 +60,14 @@ class DesignController extends Controller
         try {
             $rules = [
                 'name' => 'required|string|max:256',
-                'deleted' => 'required|boolean',
-                'content' => 'nullable|string',
+                'user_id' => 'required|string',
+                'deleted' => 'nullable|boolean',
+                'front_content' => 'required|string',
+                'back_content' => 'required|string',
                 'status' => 'nullable|string'
             ];
 
-            $inputs = $request->only('name', 'deleted', 'content', 'status');
+            $inputs = $request->only('name', 'user_id', 'deleted', 'front_content', 'back_content', 'status');
             $validator = Validator::make($inputs, $rules);
 
             if ($validator->fails()) {
@@ -80,6 +95,7 @@ class DesignController extends Controller
     public function show($id)
     {
         try {
+            $user = auth()->user();
             $design = Design::find($id);
 
             if (!$design || $design->deleted) {
@@ -87,6 +103,13 @@ class DesignController extends Controller
                     'status' => 'error',
                     'message' => 'Design not found'
                 ], 404);
+            }
+
+            if ($user->id !== $design->user_id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized'
+                ], 403);
             }
 
             return response()->json([
@@ -115,12 +138,14 @@ class DesignController extends Controller
 
             $rules = [
                 'name' => 'required|string|max:256',
-                'deleted' => 'required|boolean',
-                'content' => 'nullable|string',
-                'status' => 'nullable|string',
+                'user_id' => 'required|string',
+                'deleted' => 'nullable|boolean',
+                'front_content' => 'required|string',
+                'back_content' => 'required|string',
+                'status' => 'nullable|string'
             ];
 
-            $inputs = $request->only('name', 'deleted', 'content', 'status');
+            $inputs = $request->only('name', 'user_id', 'deleted', 'front_content', 'back_content', 'status');
             $validator = Validator::make($inputs, $rules);
 
             if ($validator->fails()) {

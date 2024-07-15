@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Design extends Model
 {
     use HasFactory;
-    protected $table = 'design';
+    protected $table = 'designs';
     protected $fillable = [
         'name',
-        'content',
+        'user_id',
+        'front_content',
+        'back_content',
         'status',
         'deleted'
     ];

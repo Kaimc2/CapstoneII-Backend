@@ -8,7 +8,6 @@ use App\Mail\MyMail;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
@@ -176,11 +175,11 @@ class AuthController extends Controller
 
             $user->roles = $roles;
             $user->permissions = $permissions;
-            dd($user);
 
-            $my_info = $user->makeHidden(['permissions', 'roles'])->toArray();
+            // $my_info = $user->makeHidden(['permissions', 'roles'])->toArray();
+            $my_info = $user->makeHidden(['permissions', 'roles']);
 
-            return response()->json($my_info);
+            return response()->json(['data' => new UserResource($my_info)]);
         } catch (\Exception $ex) {
             return response()->json([
                 'message' => 'Could not retrieve user information',
