@@ -27,6 +27,12 @@ class RolesAndPermissionsSeeder extends Seeder
         Permission::create(['name' => 'edit stores']);
         Permission::create(['name' => 'assign roles']);
         Permission::create(['name' => 'assign permissions']);
+        Permission::create(['name' => 'manage materials']);
+        Permission::create(['name' => 'manage colors']);
+        Permission::create(['name' => 'manage sizes']);
+        Permission::create(['name' => 'manage store materials']);
+        Permission::create(['name' => 'manage store colors']);
+        Permission::create(['name' => 'manage store sizes']);
 
         // Create roles and assign existing permissions
         $designerRole = Role::create(['name' => 'designer']);
@@ -35,9 +41,12 @@ class RolesAndPermissionsSeeder extends Seeder
         $designerRole->givePermissionTo('delete designs');
         $designerRole->givePermissionTo('create commissions');
 
-        $tailorRole = Role::create(['name' => 'tailors']);
+        $tailorRole = Role::create(['name' => 'tailor']);
         $tailorRole->givePermissionTo('edit commissions');
         $tailorRole->givePermissionTo('edit stores');
+        $tailorRole->givePermissionTo('manage store materials');
+        $tailorRole->givePermissionTo('manage store colors');
+        $tailorRole->givePermissionTo('manage store sizes');
 
         $adminRole = Role::create(['name' => 'admin']);
     }

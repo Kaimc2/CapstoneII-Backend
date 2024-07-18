@@ -2,11 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserResource extends JsonResource
+class StoreResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,15 +16,21 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $owner = User::find($this->owner_id);
+
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'profilePicture' => $this->profile_picture,
-            'phoneNumber' => $this->phone_number,
+            'ownerId' => $this->owner_id,
+            'ownerName' => $owner->name,
+            'description' => $this->description,
+            'tailorThumbnail' => $this->tailor_thumbnail,
+            'address' => $this->address,
             'email' => $this->email,
-            'accessToken' => $this->accessToken,
-            'isVerified' => $this->email_verified_at ? true : false,
-            'createdAt' => Carbon::parse($this->created_at)->diffForHumans(),
+            'phoneNumber' => $this->phone_number,
+            'materials' => $this->materials,
+            'colors' => $this->colors,
+            'sizes' => $this->sizes,
             'updatedAt' => Carbon::parse($this->updated_at)->diffForHumans(),
         ];
     }
