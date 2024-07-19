@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('designs', function (Blueprint $table) {
             $table->id();
+            $table->bigInteger('user_id');
             $table->string('name');
             $table->text('front_content');
             $table->text('back_content');
+            $table->string('status');
             $table->boolean('deleted')->default(false);
             $table->timestamps();
         });

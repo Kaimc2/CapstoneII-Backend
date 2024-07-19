@@ -11,17 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('colors', function (Blueprint $table) {
+        Schema::create('sizes', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->string('hex_code', 7)->unique();
             $table->timestamps();
         });
 
-        Schema::create('store_colors', function (Blueprint $table) {
+        Schema::create('store_sizes', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('store_id');
-            $table->bigInteger('color_id');
+            $table->bigInteger('size_id');
             $table->decimal('price');
             $table->timestamps();
         });
@@ -32,7 +31,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('colors');
-        Schema::dropIfExists('store_colors');
+        Schema::dropIfExists('sizes');
+        Schema::dropIfExists('store_sizes');
     }
 };

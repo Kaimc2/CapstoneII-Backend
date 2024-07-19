@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('materials', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('description');
+            $table->string('name')->unique();
             $table->timestamps();
         });
 
@@ -22,6 +21,7 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('store_id');
             $table->bigInteger('material_id');
+            $table->decimal('price');
             $table->timestamps();
         });
     }

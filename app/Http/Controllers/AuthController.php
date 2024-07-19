@@ -1,20 +1,20 @@
 <?php
+
 namespace App\Http\Controllers;
-use App\Mail\VerifyingEmail;
+
+use App\Events\StatusNotification;
+use App\Http\Resources\UserResource;
 use App\Mail\MyMail;
 use App\Models\User;
-use Carbon\Carbon;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
-use Tymon\JWTAuth\Contracts\Providers\Storage;
-use JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
@@ -22,11 +22,13 @@ class AuthController extends Controller
     {
         try {
             $rules = [
-                'name' => 'required|string|max:255',
+                'name' => 'required|string|max:255|unique:users',
                 'email' => 'required|string|email|max:255|unique:users',
                 'password' => 'required|string|min:6|confirmed',
             ];
-            $inputs = $request->only('email', 'password', 'name', 'password_confirmation');
+
+            // Validate user input
+            $inputs = $request->only('name', 'email', 'password', 'password_confirmation');
             $validation_error = Validator::make($inputs, $rules);
             if ($validation_error->fails()) {
                 return response()->json([
@@ -34,6 +36,8 @@ class AuthController extends Controller
                     'access' => false
                 ], 422);
             }
+
+            // Check if email already exist
             $check_existing_email = DB::table('users')
                 ->where('email', $request->input('email'))
                 ->exists();
@@ -43,43 +47,37 @@ class AuthController extends Controller
                     'message' => 'This email address has already been used'
                 ]);
             }
-            Mail::send(new VerifyingEmail($request->input('email'),
-                $request->input('password'),
-                $request->input('name')
-            ));
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Verification email sent successfully',
-            ]);
-        } catch (\Exception $ex) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $ex->getMessage(),
-            ]);
-        }
-    }
 
-    public function verify_email(Request $request)
-    {
-        try {
-            $status_user_registration = User::create([
-                'email' => $request->input('email'),
-                'password' => Hash::make($request->input('password')),
+            // Create a new user
+            $user = User::create([
                 'name' => $request->input('name'),
+                'email' => $request->input('email'),
+                'phone_number' => $request->input('phone_number'),
+                'password' => Hash::make($request->input('password')),
             ]);
-            if (!$status_user_registration) {
+            if (!$user) {
                 return response()->json([
-                    'status' => 'error verification',
-                    'message' => 'Registration failed'
+                    'status' => 'error',
+                    'message' => 'Failed to create user'
                 ]);
             }
+
+            // Send verification email
+            event(new Registered($user));
+            $user->assignRole('designer');
+
+            // Authenticate user
+            $token = JWTAuth::fromUser($user);
+            $user->accessToken = $token;
+
             return response()->json([
-                'status' => 'success verification',
-                'message' => 'Registration successful'
+                'status' => 'success',
+                'message' => 'User created successfully',
+                'data' => new UserResource($user),
             ]);
         } catch (\Exception $ex) {
             return response()->json([
-                'status' => 'error catching exception',
+                'status' => 'exception error',
                 'message' => $ex->getMessage(),
             ]);
         }
@@ -94,7 +92,6 @@ class AuthController extends Controller
             ];
 
             $validator = Validator::make($request->all(), $rules);
-
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error validation',
@@ -105,22 +102,19 @@ class AuthController extends Controller
             $credentials = $request->only(['email', 'password']);
             $user = User::where('email', $credentials['email'])->first();
 
-            if ($user) 
-            {
+            if ($user) {
                 $attempts = $user->login_attempts;
                 $lastAttemptTime = $user->last_login_attempt_at;
                 $lockoutTime = now()->subMinutes(15);
 
-                if ($attempts >= 3 && $lastAttemptTime > $lockoutTime)
-                {
+                if ($attempts >= 3 && $lastAttemptTime > $lockoutTime) {
                     return response()->json([
                         'status' => 'error',
                         'message' => 'Too many login attempts. Please try again later.'
                     ], 429);
                 }
 
-                if (!$token = JWTAuth::attempt($credentials))
-                {
+                if (!$token = JWTAuth::attempt($credentials)) {
                     $user->login_attempts = $attempts + 1;
                     $user->last_login_attempt_at = now();
                     $user->save();
@@ -137,22 +131,19 @@ class AuthController extends Controller
 
                 $auth = User::where('id', $user->id)->first();
                 $auth->accessToken = $token;
-                $authentication = $auth;
 
                 return response()->json([
-                    'message' => 'You are logged in successfully',
                     'status' => 'success',
-                    'data' => $authentication
+                    'message' => 'You are logged in successfully',
+                    'data' => new UserResource($auth),
                 ], 200, [], JSON_NUMERIC_CHECK);
             }
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'User not found'
+                'message' => 'Invalid credentials'
             ], 404);
-        } 
-        catch (\Exception $ex)
-        {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error',
                 'message' => $ex->getMessage(),
@@ -160,24 +151,88 @@ class AuthController extends Controller
         }
     }
 
-    public function me()
-    {
-        $user = auth()->user();
-        $Roles = $user->getRoleNames();
-        $user->Role = $Roles;
-
-        $Permissions = $user->getPermissionNames();
-        $user->Permissions = $Permissions;
-
-        $my_info = $user->makeHidden('permissions', 'roles')->toArray();
-
-        return response()->json($my_info);
-    }
-
     public function logout()
     {
-        auth()->logout();
-        return response()->json(['message' => 'Successfully logged out']);
+        try {
+            JWTAuth::invalidate(JWTAuth::getToken());
+            return response()->json(['message' => 'Successfully logged out']);
+        } catch (JWTException $ex) {
+            return response()->json(['message' => 'Failed to log out, please try again.'], 500);
+        }
+    }
+
+    public function me()
+    {
+        try {
+            $user = auth()->user();
+
+            if (!$user) {
+                return response()->json(['message' => 'User not found']);
+            }
+
+            $roles = $user->getRoleNames();
+            $permissions = $user->getPermissionNames();
+
+            $user->roles = $roles;
+            $user->permissions = $permissions;
+
+            // $my_info = $user->makeHidden(['permissions', 'roles'])->toArray();
+            $my_info = $user->makeHidden(['permissions', 'roles']);
+
+            return response()->json(['data' => new UserResource($my_info), 'roles' => $roles]);
+        } catch (\Exception $ex) {
+            return response()->json([
+                'message' => 'Could not retrieve user information',
+                'error' => $ex->getMessage()
+            ], 500);
+        }
+    }
+
+    public function verify_email(Request $request)
+    {
+        try {
+            $user = User::findOrFail($request->id);
+
+            if (!hash_equals((string) $request->hash, sha1($user->getEmailForVerification()))) {
+                event(new StatusNotification('Invalid verification link', 'error'));
+                return redirect(env('FRONTEND_URL') . 'account/verify');
+            }
+
+            if ($user->hasVerifiedEmail()) {
+                event(new StatusNotification('Email already verified', 'normal'));
+                return redirect(env('FRONTEND_URL'));
+            }
+
+            $user->markEmailAsVerified();
+            event(new StatusNotification('Registration successful', 'success'));
+
+            return redirect(env('FRONTEND_URL'))->with([
+                'status' => 'success',
+                'message' => 'Registration successful'
+            ]);
+        } catch (\Exception $ex) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $ex->getMessage(),
+            ]);
+        }
+    }
+
+    public function resend_email(Request $request)
+    {
+        try {
+            $user = User::findOrFail($request->id);
+            $user->sendEmailVerificationNotification();
+
+            return response()->json([
+                'message' => 'Verification link sent!'
+            ]);
+        } catch (\Exception $ex) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $ex->getMessage(),
+            ]);
+        }
     }
 
     public function refresh()
