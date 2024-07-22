@@ -179,7 +179,7 @@ class AuthController extends Controller
             // $my_info = $user->makeHidden(['permissions', 'roles'])->toArray();
             $my_info = $user->makeHidden(['permissions', 'roles']);
 
-            return response()->json(['data' => new UserResource($my_info)]);
+            return response()->json(['data' => new UserResource($my_info), 'roles' => $roles]);
         } catch (\Exception $ex) {
             return response()->json([
                 'message' => 'Could not retrieve user information',
