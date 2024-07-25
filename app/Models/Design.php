@@ -12,6 +12,7 @@ class Design extends Model
     protected $fillable = [
         'name',
         'user_id',
+        'design_thumbnail',
         'front_content',
         'back_content',
         'status',

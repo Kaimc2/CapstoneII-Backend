@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description');
-            $table->string('tailor_thumbnail');
+            $table->string('tailor_thumbnail')->nullable();
             $table->string('address')->nullable();
             $table->string('phone_number', 20)->nullable();
             $table->string('email')->unique()->nullable();

@@ -38,8 +38,11 @@ Route::prefix('auth')->group(function () {
 
 Route::group(['middleware' => ['jwt.auth', 'verified']], function () {
     Route::get('profile', [AuthController::class, 'me']);
+    Route::put('profile/update/{id}', [AuthController::class, 'update']);
     Route::apiResource('roles', RoleController::class);
+    Route::get('designs/deleted', [DesignController::class, 'show_deleted']);
     Route::apiResource('designs', DesignController::class);
+    Route::put('designs/{id}/restore', [DesignController::class, 'restore']);
     Route::apiResource('stores', StoreController::class);
     Route::apiResource('permissions', PermissionController::class);
     Route::apiResource('commissions', CommissionController::class);

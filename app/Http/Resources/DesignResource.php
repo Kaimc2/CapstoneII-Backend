@@ -19,6 +19,7 @@ class DesignResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'userId' => $this->user_id,
+            'designThumbnail' => $this->design_thumbnail,
             'frontContent' => $this->front_content,
             'backContent' => $this->back_content,
             'status' => $this->status,

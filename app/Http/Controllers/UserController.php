@@ -57,6 +57,7 @@ class UserController extends Controller
             ]);
         }
     }
+
     public function store(Request $request)
     {
         try {
@@ -68,28 +69,24 @@ class UserController extends Controller
             ];
             $inputs = $request->only(['name', 'email', 'phone_number', 'password']);
             $validation_errors = Validator::make($inputs, $rules);
-            if ($validation_errors->fails())
-            {
+            if ($validation_errors->fails()) {
                 return response()->json([
                     'status' => 'error validation',
                     'message' =>  $validation_errors->messages()->all()
                 ]);
             }
             $user = User::create($inputs);
-            if (!$user)
-            {
+            if (!$user) {
                 return response()->json([
                     'status' => 'error creating user',
                     'message' => 'Failed creating user'
                 ]);
             }
-            if($request->hasFile('profile_picture'))
-            {
+            if ($request->hasFile('profile_picture')) {
                 $file = $request->file('profile_picture');
-                $profile_picture_name = 'user_profile_'. $user->id . '.' .$file->getClientOriginalExtension();
+                $profile_picture_name = 'user_profile_' . $user->id . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs('profile_pictures', $profile_picture_name, 'public');
-                if (!$path)
-                {
+                if (!$path) {
                     return response()->json([
                         'status' => 'error storing image',
                         'message' => 'Failed storing image'
@@ -102,14 +99,14 @@ class UserController extends Controller
                 'status' => 'success',
                 'message' => 'User created successfully'
             ]);
-        }
-        catch (\Exception $ex) {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error catching',
                 'message' => $ex->getMessage()
             ]);
         }
     }
+
     public  function update(Request $request, $id)
     {
         try {
@@ -121,16 +118,14 @@ class UserController extends Controller
             ];
             $inputs = $request->only(['email', 'password', 'phone_number', 'password', 'profile_picture']);
             $validation_errors = Validator::make($inputs, $rules);
-            if ($validation_errors->fails())
-            {
-                return respsonse()->json([
+            if ($validation_errors->fails()) {
+                return response()->json([
                     'status' => 'error validation',
                     'message' =>  $validation_errors->messages()->all()
                 ]);
             }
             $status = User::create($inputs);
-            if (!$status)
-            {
+            if (!$status) {
                 return response()->json([
                     'status' => 'error creating user',
                     'message' => 'Failed creating user'
@@ -140,8 +135,7 @@ class UserController extends Controller
                 'status' => 'success',
                 'message' => 'User created successfully'
             ]);
-        }
-        catch (\Exception $ex) {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error catching',
                 'message' => $ex->getMessage()
@@ -153,16 +147,14 @@ class UserController extends Controller
         try {
             $user = User::find($id);
             $path = $user->profile_picture;
-            if(Storage::disk('public')->exists($path))
-            {
-                return response()->file(storage_path('app/public/'.$path));
+            if (Storage::disk('public')->exists($path)) {
+                return response()->file(storage_path('app/public/' . $path));
             }
             return response()->json([
                 'status' => 'error',
                 'message' => 'profile picture not found'
             ]);
-        }
-        catch (\Exception $ex) {
+        } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error catching',
                 'message' => $ex->getMessage()

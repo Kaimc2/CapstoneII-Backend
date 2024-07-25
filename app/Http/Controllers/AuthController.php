@@ -188,6 +188,52 @@ class AuthController extends Controller
         }
     }
 
+    public function update(Request $request, $id)
+    {
+        try {
+            $user = User::find($id);
+
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User not found',
+                ], 404);
+            }
+
+            $rules = ['name' => 'required|string', 'profile_picture' => 'image|nullable'];
+            $inputs = $request->only('name', 'profile_picture');
+            $validation_errors = Validator::make($inputs, $rules);
+
+            if ($validation_errors->fails()) {
+                return response()->json([
+                    'status' => 'error validation',
+                    'message' => $validation_errors->errors()->all()
+                ], 403);
+            }
+
+            $status_update = $user->update($inputs);
+            $user->save();
+
+            if (!$status_update) {
+                return response()->json([
+                    'status' => 'error updating',
+                    'message' => 'User has not been updated'
+                ]);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => new UserResource($user),
+                'message' => 'User has been updated successfully'
+            ]);
+        } catch (\Exception $ex) {
+            return response()->json([
+                'status' => 'error catching exception',
+                'message' => $ex->getMessage(),
+            ]);
+        }
+    }
+
     public function verify_email(Request $request)
     {
         try {
