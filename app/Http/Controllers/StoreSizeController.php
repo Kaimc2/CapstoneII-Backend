@@ -97,6 +97,14 @@ class StoreSizeController extends Controller
                 ], 422);
             }
 
+            $existedSize = StoreSize::where('store_id', $request->store_id)->where('size_id', $request->size_id)->first();
+            if ($existedSize) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => ["size" => 'Size already added']
+                ], 422);
+            }
+
             $size = StoreSize::create($inputs);
 
             return response()->json([

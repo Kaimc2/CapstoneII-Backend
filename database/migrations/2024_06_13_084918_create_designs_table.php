@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('user_id');
             $table->string('name');
-            $table->text('front_content');
-            $table->text('back_content');
+            $table->text('design_thumbnail')->nullable();
+            $table->longText('front_content');
+            $table->longText('back_content');
             $table->string('status');
             $table->boolean('deleted')->default(false);
             $table->timestamps();

@@ -97,6 +97,14 @@ class StoreColorController extends Controller
                 ], 422);
             }
 
+            $existedColor = StoreColor::where('store_id', $request->store_id)->where('color_id', $request->color_id)->first();
+            if ($existedColor) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => ["color" => 'Color already added']
+                ], 422);
+            }
+
             $color = StoreColor::create($inputs);
 
             return response()->json([

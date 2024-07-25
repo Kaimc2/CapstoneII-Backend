@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\StoreResource;
 use App\Models\Store;
-use App\Models\StoreColor;
-use App\Models\StoreMaterial;
-use App\Models\StoreSize;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class StoreController extends Controller
@@ -44,7 +42,7 @@ class StoreController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($id, Request $request)
     {
         try {
             $data = Store::where('owner_id', '=', $id)->first();
@@ -56,9 +54,40 @@ class StoreController extends Controller
                 ]);
             }
 
-            $data->materials = StoreMaterial::where('store_id', '=', $data->id)->get();
-            $data->colors = StoreColor::where('store_id', '=', $data->id)->get();
-            $data->sizes = StoreSize::where('store_id', '=', $data->id)->get();
+            $data->materials = DB::table('store_materials')
+                ->join('materials', 'materials.id', '=', 'store_materials.material_id')
+                ->where('store_materials.store_id', $data->id)
+                ->where('materials.name', 'LIKE', "%{$request->search_material}")
+                ->select(
+                    'store_materials.id',
+                    'materials.id as materialID',
+                    'store_materials.store_id as storeID',
+                    'materials.name',
+                    'store_materials.price'
+                )->get();
+            $data->colors = DB::table('store_colors')
+                ->join('colors', 'colors.id', '=', 'store_colors.color_id')
+                ->where('store_colors.store_id', $data->id)
+                ->where('colors.name', 'LIKE', "%{$request->search_color}")
+                ->select(
+                    'store_colors.id',
+                    'colors.id as colorID',
+                    'store_colors.store_id as storeID',
+                    'colors.name',
+                    'colors.hex_code as hexCode',
+                    'store_colors.price'
+                )->get();
+            $data->sizes = DB::table('store_sizes')
+                ->join('sizes', 'sizes.id', '=', 'store_sizes.size_id')
+                ->where('store_sizes.store_id', $data->id)
+                ->where('sizes.name', 'LIKE', "%{$request->search_size}")
+                ->select(
+                    'store_sizes.id',
+                    'sizes.id as sizeID',
+                    'store_sizes.store_id as storeID',
+                    'sizes.name',
+                    'store_sizes.price'
+                )->get();
 
             return response()->json([
                 'status' => 'success',
@@ -78,7 +107,7 @@ class StoreController extends Controller
             $rules = [
                 'name' => 'required|string',
                 'description' => 'required|string',
-                'tailor_thumbnail' => 'required|string',
+                'tailor_thumbnail' => 'string',
                 'address' => 'string',
                 'phone_number' => 'required|string',
                 'email' => 'required|email',

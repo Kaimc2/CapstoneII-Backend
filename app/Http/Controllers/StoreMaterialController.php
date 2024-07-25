@@ -97,6 +97,14 @@ class StoreMaterialController extends Controller
                 ], 422);
             }
 
+            $existedMaterial = StoreMaterial::where('store_id', $request->store_id)->where('material_id', $request->material_id)->first();
+            if ($existedMaterial) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => ["material" => 'Material already added']
+                ], 422);
+            }
+
             $material = StoreMaterial::create($inputs);
 
             return response()->json([
