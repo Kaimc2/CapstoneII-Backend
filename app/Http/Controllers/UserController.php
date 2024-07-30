@@ -142,13 +142,14 @@ class UserController extends Controller
             ]);
         }
     }
+
     public function display($id)
     {
         try {
             $user = User::find($id);
             $path = $user->profile_picture;
             if (Storage::disk('public')->exists($path)) {
-                return response()->file(storage_path('app/public/' . $path));
+                return response()->file(storage_path(`app/public/$path`));
             }
             return response()->json([
                 'status' => 'error',

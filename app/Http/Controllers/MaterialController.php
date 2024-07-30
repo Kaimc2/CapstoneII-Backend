@@ -128,7 +128,7 @@ class MaterialController extends Controller
                 ], 404);
             }
 
-            $rules = ['name' => 'required|string|max:256|unique:materials'];
+            $rules = ['name' => `required|string|max:256|unique:materials,name,$id`];
             $inputs = $request->only('name');
             $validator = Validator::make($inputs, $rules);
 

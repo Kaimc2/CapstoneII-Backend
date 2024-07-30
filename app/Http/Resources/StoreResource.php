@@ -6,6 +6,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class StoreResource extends JsonResource
 {
@@ -24,7 +25,7 @@ class StoreResource extends JsonResource
             'ownerId' => $this->owner_id,
             'ownerName' => $owner->name,
             'description' => $this->description,
-            'tailorThumbnail' => $this->tailor_thumbnail,
+            'tailorThumbnail' => Storage::url($this->tailor_thumbnail),
             'address' => $this->address,
             'email' => $this->email,
             'phoneNumber' => $this->phone_number,
