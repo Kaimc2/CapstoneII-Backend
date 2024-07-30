@@ -25,29 +25,11 @@ class Commission extends Model
     protected $fillable = [
         'design_id',
         'tailor_id',
-        'start_date',
+        'options',
+        'total',
+        'type',
         'status',
+        'start_date',
         'end_date',
-        'deleted',
     ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'deleted' => 'boolean',
-    ];
-
-    /**
-     * Scope a query to only include non-deleted designs.
-     *
-     * @param Builder $query
-     * @return Builder
-     */
-    public function scopeNonDeleted($query)
-    {
-        return $query->where('deleted', false);
-    }
 }

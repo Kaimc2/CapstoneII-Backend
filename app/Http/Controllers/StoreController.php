@@ -6,7 +6,10 @@ use App\Http\Resources\StoreResource;
 use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+
+use function Psy\debug;
 
 class StoreController extends Controller
 {
@@ -16,22 +19,62 @@ class StoreController extends Controller
             $search = $request->input('search');
             $item_per_page = $request->input('item_per_page', 10);
 
-            $stores = Store::query();
-
-            $data = $stores->whereAny(['name', 'description'], 'LIKE', "%{$search}%")
+            $storesQuery = DB::table('stores')
+                ->where('name', 'LIKE', "%{$search}%")
                 ->orderBy('name', 'asc')
                 ->paginate($item_per_page);
 
+            $stores = $storesQuery->items();
+            $storeIds = array_column($stores, 'id');
+
+            $materials = DB::table('store_materials')
+                ->join('materials', 'materials.id', '=', 'store_materials.material_id')
+                ->whereIn('store_materials.store_id', $storeIds)
+                ->select(
+                    'store_materials.store_id',
+                    'materials.id as materialID',
+                    'materials.name',
+                    'store_materials.price'
+                )->get()->groupBy('store_id');
+
+            $colors = DB::table('store_colors')
+                ->join('colors', 'colors.id', '=', 'store_colors.color_id')
+                ->whereIn('store_colors.store_id', $storeIds)
+                ->select(
+                    'store_colors.store_id',
+                    'colors.id as colorID',
+                    'colors.name',
+                    'colors.hex_code as hexCode',
+                    'store_colors.price'
+                )->get()->groupBy('store_id');
+
+            $sizes = DB::table('store_sizes')
+                ->join('sizes', 'sizes.id', '=', 'store_sizes.size_id')
+                ->whereIn('store_sizes.store_id', $storeIds)
+                ->select(
+                    'store_sizes.store_id',
+                    'sizes.id as sizeID',
+                    'sizes.name',
+                    'store_sizes.price'
+                )->get()->groupBy('store_id');
+
+            // Attach materials, colors, and sizes to stores
+            foreach ($stores as &$store) {
+                $store->materials = $materials->get($store->id, []);
+                $store->colors = $colors->get($store->id, []);
+                $store->sizes = $sizes->get($store->id, []);
+            }
+
             return response()->json([
                 'status' => 'success',
-                'data' => StoreResource::collection($data),
+                'data' => StoreResource::collection($stores),
                 'meta' => [
-                    'currentPage' => $data->currentPage(),
-                    'from' => $data->firstItem(),
-                    'lastPage' => $data->lastPage(),
-                    'perPage' => $data->perPage(),
-                    'to' => $data->lastItem(),
-                    'total' => $data->total(),
+                    'currentPage' => $storesQuery->currentPage(),
+                    'from' => $storesQuery->firstItem(),
+                    'lastPage' => $storesQuery->lastPage(),
+                    'perPage' => $storesQuery->perPage(),
+                    'to' => $storesQuery->lastItem(),
+                    'total' => $storesQuery->total(),
                 ],
             ]);
         } catch (\Exception $ex) {
@@ -107,8 +150,8 @@ class StoreController extends Controller
             $rules = [
                 'name' => 'required|string',
                 'description' => 'required|string',
-                'tailor_thumbnail' => 'string',
-                'address' => 'string',
+                'tailor_thumbnail' => 'file|mimes:jpg,jpeg,png,gif,webp',
+                'address' => 'required|string',
                 'phone_number' => 'required|string',
                 'email' => 'required|email',
                 'owner_id' => 'required|numeric',
@@ -123,10 +166,26 @@ class StoreController extends Controller
                 ], 403);
             }
 
+            if ($request->hasFile('tailor_thumbnail')) {
+                $file = $request->file('tailor_thumbnail');
+
+                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $file->getClientOriginalExtension();
+                $thumbnail_name = $filename . '_' . time() . '_' . $extension;
+
+                $path = $file->storeAs('tailor_thumbnails', $thumbnail_name, 'public');
+                if (!$path) {
+                    return response()->json([
+                        'status' => 'error storing image',
+                        'message' => 'Failed storing image'
+                    ]);
+                }
+            }
+
             $status_creation = Store::create([
                 'name' => $request->input('name'),
                 'description' => $request->input('description'),
-                'tailor_thumbnail' => $request->input('tailor_thumbnail'),
+                'tailor_thumbnail' => $path,
                 'address' => $request->input('address'),
                 'phone_number' => $request->input('phone_number'),
                 'email' => $request->input('email'),
@@ -151,6 +210,7 @@ class StoreController extends Controller
             ]);
         }
     }
+
     public function update(Request $request, $id)
     {
         try {
@@ -166,8 +226,8 @@ class StoreController extends Controller
             $rules = [
                 'name' => 'required|string',
                 'description' => 'required|string',
-                'tailor_thumbnail' => 'required|string',
-                'address' => 'string',
+                'tailor_thumbnail' => 'file|mimes:jpg,jpeg,png,gif,webp',
+                'address' => 'required|string',
                 'phone_number' => 'required|string',
                 'email' => 'required|email',
                 'owner_id' => 'required|numeric',
@@ -182,7 +242,30 @@ class StoreController extends Controller
                 ], 403);
             }
 
-            $status_update = $store->fill($inputs)->save();
+            if ($request->hasFile('tailor_thumbnail')) {
+                $file = $request->file('tailor_thumbnail');
+
+                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $file->getClientOriginalExtension();
+                $thumbnail_name = $filename . '_' . time() . '_' . $extension;
+
+                $path = $file->storeAs('tailor_thumbnails', $thumbnail_name, 'public');
+                if (!$path) {
+                    return response()->json([
+                        'status' => 'error storing image',
+                        'message' => 'Failed storing image'
+                    ]);
+                }
+
+                $thumbnail_path = $store->tailor_thumbnail;
+                if (Storage::disk('public')->exists($thumbnail_path)) {
+                    Storage::disk('public')->delete($thumbnail_path);
+                }
+
+                $inputs['tailor_thumbnail'] = $path;
+            }
+
+            $status_update = $store->update($inputs);
 
             if (!$status_update) {
                 return response()->json([
@@ -190,6 +273,7 @@ class StoreController extends Controller
                     'message' => 'Store has not been updated'
                 ]);
             }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Store has been updated successfully'

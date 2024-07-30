@@ -45,6 +45,8 @@ Route::group(['middleware' => ['jwt.auth', 'verified']], function () {
     Route::put('designs/{id}/restore', [DesignController::class, 'restore']);
     Route::apiResource('stores', StoreController::class);
     Route::apiResource('permissions', PermissionController::class);
+    Route::get('user/commissions', [CommissionController::class, 'my_commissions']);
+    Route::get('store/commissions', [CommissionController::class, 'store_commissions']);
     Route::apiResource('commissions', CommissionController::class);
     Route::apiResource('adjustments', AdjustmentController::class);
     Route::get('display/{id}', [UserController::class, 'display'])->name('profile');
