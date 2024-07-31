@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\Pagination;
 use App\Models\Commission;
+use App\Models\Store;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -108,7 +109,6 @@ class CommissionController extends Controller
                 ->join('stores', 'stores.id', '=', 'commissions.tailor_id')
                 ->latest('commissions.updated_at')
                 ->where('designs.name', 'LIKE', "%{$search}%")
-                ->where('designs.user_id', $user->id)
                 ->where('stores.owner_id', $user->id)
                 ->select(
                     'commissions.id',
@@ -126,6 +126,47 @@ class CommissionController extends Controller
                     'commissions.end_date as endDate',
                 )
                 ->paginate($item_per_page);
+
+            return response()->json([
+                'status' => 'Success',
+                'data' => $commissions
+            ], 200);
+        } catch (\Exception $ex) {
+            return response()->json([
+                'status' => 'Error',
+                'message' => $ex->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function show_recent()
+    {
+        try {
+            $user = auth()->user();
+
+            $commissions = DB::table('commissions')
+                ->join('designs', 'designs.id', '=', 'commissions.design_id')
+                ->join('users', 'users.id', '=', 'designs.user_id')
+                ->join('stores', 'stores.id', '=', 'commissions.tailor_id')
+                ->latest('commissions.updated_at')
+                ->where('designs.user_id', $user->id)
+                ->select(
+                    'commissions.id',
+                    'commissions.design_id as designId',
+                    'designs.name as designName',
+                    'users.id as designOwnerId',
+                    'users.name as designOwnerName',
+                    'commissions.tailor_id as tailorId',
+                    'stores.name as tailorName',
+                    'commissions.options',
+                    'commissions.total',
+                    'commissions.type',
+                    'commissions.status',
+                    'commissions.start_date as startDate',
+                    'commissions.end_date as endDate',
+                )
+                ->latest('commissions.updated_at')
+                ->take(5)->get();
 
             return response()->json([
                 'status' => 'Success',
@@ -158,10 +199,7 @@ class CommissionController extends Controller
                 )
                 ->first();
 
-            $store = DB::table('stores')
-                ->join('commissions', 'commissions.tailor_id', '=', 'stores.id')
-                ->where('commissions.id', $id)
-                ->first();
+            $store = Store::find($commission->tailorId);
             $store->materials = DB::table('store_materials')
                 ->join('materials', 'materials.id', '=', 'store_materials.material_id')
                 ->where('store_materials.store_id', $store->id)

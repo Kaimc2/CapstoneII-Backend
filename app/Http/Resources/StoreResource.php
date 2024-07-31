@@ -25,7 +25,7 @@ class StoreResource extends JsonResource
             'ownerId' => $this->owner_id,
             'ownerName' => $owner->name,
             'description' => $this->description,
-            'tailorThumbnail' => Storage::url($this->tailor_thumbnail),
+            'tailorThumbnail' => env('BACKEND_URL') . Storage::url($this->tailor_thumbnail),
             'address' => $this->address,
             'email' => $this->email,
             'phoneNumber' => $this->phone_number,

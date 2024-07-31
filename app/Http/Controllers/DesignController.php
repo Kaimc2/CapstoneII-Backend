@@ -53,6 +53,31 @@ class DesignController extends Controller
         }
     }
 
+    public function show_recent()
+    {
+        try {
+            $designs = Design::query();
+            $user = auth()->user();
+
+            $data = $designs
+                ->where('user_id', '=', $user->id)
+                ->where('deleted', '=', false)
+                ->latest('updated_at')
+                ->take(5)->get();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => DesignResource::collection($data),
+                'message' => 'Data has been retrieved successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function show_deleted(Request $request)
     {
         try {

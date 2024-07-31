@@ -41,12 +41,14 @@ Route::group(['middleware' => ['jwt.auth', 'verified']], function () {
     Route::put('profile/update/{id}', [AuthController::class, 'update']);
     Route::apiResource('roles', RoleController::class);
     Route::get('designs/deleted', [DesignController::class, 'show_deleted']);
+    Route::get('designs/recent', [DesignController::class, 'show_recent']);
     Route::apiResource('designs', DesignController::class);
     Route::put('designs/{id}/restore', [DesignController::class, 'restore']);
     Route::apiResource('stores', StoreController::class);
     Route::apiResource('permissions', PermissionController::class);
     Route::get('user/commissions', [CommissionController::class, 'my_commissions']);
     Route::get('store/commissions', [CommissionController::class, 'store_commissions']);
+    Route::get('commissions/recent', [CommissionController::class, 'show_recent']);
     Route::apiResource('commissions', CommissionController::class);
     Route::apiResource('adjustments', AdjustmentController::class);
     Route::get('display/{id}', [UserController::class, 'display'])->name('profile');

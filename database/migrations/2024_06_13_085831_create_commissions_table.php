@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('options');
             $table->enum('status', [1, 2, 3, 4, 5]);
             $table->decimal('total');
-            $table->enum('type', ['individual', 'team', 'bulk']);
+            $table->enum('type', ['individual', 'team']);
             $table->date('start_date');
             $table->date('end_date')->nullable();
             $table->timestamps();

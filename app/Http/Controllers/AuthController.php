@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
@@ -211,8 +212,30 @@ class AuthController extends Controller
                 ], 403);
             }
 
+            if ($request->hasFile('profile_picture')) {
+                $file = $request->file('profile_picture');
+
+                $filename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $extension = $file->getClientOriginalExtension();
+                $thumbnail_name = $filename . '_' . time() . '_' . $extension;
+
+                $path = $file->storeAs('profile_pictures', $thumbnail_name, 'public');
+                if (!$path) {
+                    return response()->json([
+                        'status' => 'error storing image',
+                        'message' => 'Failed storing image'
+                    ]);
+                }
+
+                $thumbnail_path = $user->profile_picture;
+                if ($user->profile_picture && Storage::disk('public')->exists($thumbnail_path)) {
+                    Storage::disk('public')->delete($thumbnail_path);
+                }
+
+                $inputs['profile_picture'] = $path;
+            }
+
             $status_update = $user->update($inputs);
-            $user->save();
 
             if (!$status_update) {
                 return response()->json([
