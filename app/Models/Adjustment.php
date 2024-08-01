@@ -24,7 +24,7 @@ class Adjustment extends Model
      */
     protected $fillable = [
         'commission_id',
-        'adjust_date',
+        'adjustment_date',
         'duration',
         'message',
     ];

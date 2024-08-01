@@ -44,12 +44,12 @@ class AdjustmentController extends Controller
         try {
             $rules = [
                 'commission_id' => 'required|string|max:256',
-                'adjust_date' => 'required|date',
+                'adjustment_date' => 'required|date',
                 'duration' => 'nullable|string',
                 'message' => 'nullable|string'
             ];
 
-            $inputs = $request->only('name', 'deleted', 'content', 'status');
+            $inputs = $request->only('commission_id', 'adjustment_date', 'duration', 'message');
             $validator = Validator::make($inputs, $rules);
 
             if ($validator->fails()) {
@@ -66,7 +66,7 @@ class AdjustmentController extends Controller
                 ->where('id', $design->commission_id)
                 ->update([
                     'end_date' => DB::raw("DATE_ADD(end_date, INTERVAL {$design->duration} DAY)")
-            ]);
+                ]);
 
             return response()->json([
                 'status' => 'success',
