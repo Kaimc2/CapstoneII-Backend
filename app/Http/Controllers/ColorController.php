@@ -141,8 +141,8 @@ class ColorController extends Controller
             }
 
             $rules = [
-                'name' => `required|string|max:256|unique:colors,name,$id`,
-                'hex_code' => `required|string|max:7|unique:colors,hex_code,$id`,
+                'name' => "required|string|max:256|unique:colors,name,$id",
+                'hex_code' => "required|string|max:7|unique:colors,hex_code,$id",
             ];
             $inputs = $request->only('name', 'hex_code');
             $validator = Validator::make($inputs, $rules);

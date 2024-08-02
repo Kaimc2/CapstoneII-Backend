@@ -14,7 +14,7 @@ class MaterialController extends Controller
     {
         try {
             $search = $request->input('search');
-            $item_per_page = $request->input('item_per_page', 10);
+            $item_per_page = $request->input('item_per_page', 5);
             $materials = Material::query();
 
             if ($search) {
@@ -128,7 +128,7 @@ class MaterialController extends Controller
                 ], 404);
             }
 
-            $rules = ['name' => `required|string|max:256|unique:materials,name,$id`];
+            $rules = ['name' => "required|string|max:256|unique:materials,name,$id"];
             $inputs = $request->only('name');
             $validator = Validator::make($inputs, $rules);
 

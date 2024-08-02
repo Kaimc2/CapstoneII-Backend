@@ -128,7 +128,7 @@ class SizeController extends Controller
                 ], 404);
             }
 
-            $rules = ['name' => `required|string|max:256|unique:sizes,name,$id`];
+            $rules = ['name' => "required|string|max:256|unique:sizes,name,$id"];
             $inputs = $request->only('name');
             $validator = Validator::make($inputs, $rules);
 
