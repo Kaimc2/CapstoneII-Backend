@@ -18,7 +18,7 @@ class SizeController extends Controller
             $sizes = Size::query();
 
             if ($search) {
-                $sizes->where('name', 'LIKE', $search)
+                $sizes->where('name', 'LIKE', "%{$search}%")
                     ->orderBy('id', 'ASC')
                     ->paginate($item_per_page);
             }

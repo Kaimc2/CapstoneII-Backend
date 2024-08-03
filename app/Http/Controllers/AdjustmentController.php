@@ -16,19 +16,25 @@ class AdjustmentController extends Controller
         try {
             $search = $request->input('search');
             $item_per_page = $request->input('item_per_page', Pagination::ITEMS_PER_PAGE->value);
-            $designs = Adjustment::query();
 
-            if ($search) {
-                $designs->whereAny(['message'], 'LIKE', $search)
-                    ->orderBy('id', 'ASC')
-                    ->paginate($item_per_page);
-            }
-
-            $data = $designs->orderBy('id', 'asc')->paginate($item_per_page);
+            $adjustments = DB::table('adjustments')
+                ->join('commissions', 'commissions.id', '=', 'adjustments.commission_id')
+                ->join('stores', 'stores.id', '=', 'commissions.tailor_id')
+                // ->where('adjustments.message', 'LIKE', "%{$search}%")
+                ->where('stores.name', 'LIKE', "%{$search}%")
+                ->select([
+                    'adjustments.id',
+                    'adjustments.commission_id as commissionId',
+                    'adjustments.adjustment_date as adjustmentDate',
+                    'adjustments.duration',
+                    'adjustments.message',
+                    'stores.name as tailorName',
+                ])
+                ->paginate($item_per_page);
 
             return response()->json([
                 'status' => 'success',
-                'data' => $data,
+                'data' => $adjustments,
                 'message' => 'Data has been retrieved successfully'
             ]);
         } catch (\Exception $e) {

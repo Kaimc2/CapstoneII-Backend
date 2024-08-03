@@ -19,7 +19,7 @@ class ColorController extends Controller
             $colors = Color::query();
 
             if ($search) {
-                $colors->where('name', 'LIKE', $search)
+                $colors->where('name', 'LIKE', "%{$search}%")
                     ->orderBy('id', 'ASC')
                     ->paginate($item_per_page);
             }
