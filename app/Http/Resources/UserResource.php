@@ -19,7 +19,7 @@ class UserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'profilePicture' => env('BACKEND_URL') . Storage::url($this->profile_picture),
+            'profilePicture' => $this->profile_picture ? env('BACKEND_URL') . Storage::url($this->profile_picture) : null,
             'phoneNumber' => $this->phone_number,
             'email' => $this->email,
             'accessToken' => $this->accessToken,

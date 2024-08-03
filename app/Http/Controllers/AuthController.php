@@ -370,6 +370,21 @@ class AuthController extends Controller
         }
     }
 
+    public function current_password(Request $request)
+    {
+        $user = auth()->user();
+
+        if (Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'message' => 'Correct current password',
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'Incorrect current password',
+            ], 400);
+        }
+    }
+
     public function reset_password(Request $request)
     {
         try {
@@ -384,28 +399,20 @@ class AuthController extends Controller
                 return response()->json([
                     'status' => 'error validating',
                     'message' => $validation_errors->errors()->all()
-                ]);
+                ], 400);
             } else {
-                $token = DB::table('password_reset_tokens')->where('token', $request->token)->first();
-                if ($token) {
-                    $user = User::where('email', $token->email)->first();
-                    if (Hash::check($request->password, $user->password)) {
-                        return response()->json([
-                            'status' => '410',
-                            'message' => 'Please create a new password different from the previous one'
-                        ]);
-                    } else {
-                        $user->password = Hash::make($request->password);
-                        $status = $user->save();
-                        return response()->json([
-                            'status' => '200',
-                            'message' => 'Your password has been changed',
-                        ]);
-                    }
-                } else {
+                $user = auth()->user();
+                if (Hash::check($request->password, $user->password)) {
                     return response()->json([
-                        'status' => '400',
-                        'message' => 'Invalid token',
+                        'status' => '410',
+                        'message' => 'Please create a new password different from the previous one'
+                    ], 410);
+                } else {
+                    $user->password = Hash::make($request->password);
+                    $user->save();
+                    return response()->json([
+                        'status' => '200',
+                        'message' => 'Your password has been changed',
                     ]);
                 }
             }

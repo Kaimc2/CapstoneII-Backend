@@ -21,17 +21,18 @@ Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->name('login');
     Route::post('logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('refresh-token', [AuthController::class, 'refresh']);
-
+    
     // Email Verification routes
     Route::get('email/verify', function () {
         return redirect(env('FRONTEND_URL') . 'account/verify');
     })->name('verification.notice');
     Route::get('email/verify/{id}/{hash}', [AuthController::class, 'verify_email'])
-        ->middleware(['signed'])->name('verification.verify');
+    ->middleware(['signed'])->name('verification.verify');
     Route::post('email/verification-notice/{id}', [AuthController::class, 'resend_email'])
         ->middleware(['throttle:6,1'])->name('verification.name');
 
     // Password routes
+    Route::post('current-password', [AuthController::class, 'current_password']);
     Route::post('forgot-password', [AuthController::class, 'forgot_password']);
     Route::post('reset-password', [AuthController::class, 'reset_password']);
 });
