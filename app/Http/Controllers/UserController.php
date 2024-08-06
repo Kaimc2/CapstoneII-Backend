@@ -143,6 +143,33 @@ class UserController extends Controller
         }
     }
 
+    public function assign_new_role(Request $request, $id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        $rules = ['role' => 'required|string'];
+        $inputs = $request->only('role');
+        $validation_errors = Validator::make($inputs, $rules);
+
+        if ($validation_errors->fails()) {
+            return response()->json([
+                'status' => 'error validation',
+                'message' => $validation_errors->errors()->all()
+            ], 403);
+        }
+
+        $user->syncRoles([$request->role]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Role changed successfully'
+        ]);
+    }
+
     public function display($id)
     {
         try {

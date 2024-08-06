@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -168,7 +169,7 @@ class AuthController extends Controller
             $user = auth()->user();
 
             if (!$user) {
-                return response()->json(['message' => 'User not found']);
+                return response()->json(['message' => 'User not found'], 404);
             }
 
             $roles = $user->getRoleNames();
@@ -322,7 +323,7 @@ class AuthController extends Controller
     {
         try {
             $rule = [
-                'email' => 'required|string',
+                'email' => 'required|email',
             ];
             $validation_error = Validator::make($request->all(), $rule);
             if ($validation_error->fails()) {
@@ -370,6 +371,83 @@ class AuthController extends Controller
         }
     }
 
+    public function reset_password(Request $request)
+    {
+        try {
+            $rules = [
+                'password' => 'required|string|min:6|confirmed',
+                'password_confirmation' => 'required|string',
+                'token' => 'required',
+            ];
+            $input = $request->only('password', 'password_confirmation');
+
+            $validation_errors = Validator::make($input, $rules);
+            if ($validation_errors->fails()) {
+                return response()->json([
+                    'status' => 'error validating',
+                    'message' => $validation_errors->errors()->all()
+                ], 400);
+            } else {
+                $token = DB::table('password_reset_tokens')->where('token', $request->token)->first();
+                if ($token) {
+                    $user = User::where('email', $token->email)->first();
+                    if (Hash::check($request->password, $user->password)) {
+                        return response()->json([
+                            'status' => '410',
+                            'message' => 'Please create a new password different from the previous one'
+                        ]);
+                    } else {
+                        $user->password = Hash::make($request->password);
+                        $user->save();
+                        return response()->json([
+                            'status' => '200',
+                            'message' => 'Your password has been changed',
+                        ]);
+                    }
+                } else {
+                    return response()->json([
+                        'status' => '400',
+                        'message' => 'Invalid token',
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'false',
+                'message' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function resend_reset_password(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $status = Password::sendResetLink(['email' => $request->email]);
+        if ($status === Password::RESET_LINK_SENT) {
+            return response()->json([
+                'message' => __($status)
+            ]);
+        } else if ($status === Password::RESET_THROTTLED) {
+            return response()->json([
+                'message' => 'Too many requests. Please try again later.',
+            ], 429);
+        } else {
+            return response()->json([
+                'message' => __($status)
+            ], 500);
+        }
+    }
+
     public function current_password(Request $request)
     {
         $user = auth()->user();
@@ -385,7 +463,7 @@ class AuthController extends Controller
         }
     }
 
-    public function reset_password(Request $request)
+    public function reset_existing_password(Request $request)
     {
         try {
             $rules = [

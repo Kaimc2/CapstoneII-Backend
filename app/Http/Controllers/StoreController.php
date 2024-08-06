@@ -185,7 +185,7 @@ class StoreController extends Controller
             $status_creation = Store::create([
                 'name' => $request->input('name'),
                 'description' => $request->input('description'),
-                'tailor_thumbnail' => $path,
+                'tailor_thumbnail' => $path ?? null,
                 'address' => $request->input('address'),
                 'phone_number' => $request->input('phone_number'),
                 'email' => $request->input('email'),
@@ -258,7 +258,7 @@ class StoreController extends Controller
                 }
 
                 $thumbnail_path = $store->tailor_thumbnail;
-                if (Storage::disk('public')->exists($thumbnail_path)) {
+                if ($thumbnail_path && Storage::disk('public')->exists($thumbnail_path)) {
                     Storage::disk('public')->delete($thumbnail_path);
                 }
 

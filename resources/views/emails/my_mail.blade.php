@@ -19,7 +19,7 @@
         }
 
         .header {
-            background-color: #4CAF50;
+            background-color: #EEAF2F;
             color: white;
             padding: 10px;
             text-align: center;
@@ -27,7 +27,9 @@
         }
 
         .content {
-            margin: 20px 0;
+            color: black;
+            margin: 20px;
+            font-size: 16px;
             line-height: 1.6;
         }
 
@@ -40,8 +42,12 @@
             margin: 20px 0;
         }
 
+        .button-container a {
+            color: white
+        }
+
         .button {
-            background-color: #4CAF50;
+            background-color: #EEAF2F;
             color: white;
             padding: 10px 20px;
             text-decoration: none;
@@ -63,11 +69,16 @@
             margin: 10px;
         }
 
-        .image>div>img {
+        .image>img {
             width: 300px;
             height: 200px;
             border-radius: 10px;
             margin: auto;
+        }
+
+        .content .bottom-content {
+            display: flex;
+            justify-content: center;
         }
     </style>
 </head>
@@ -78,19 +89,17 @@
             <h2>Password Reset Request</h2>
         </div>
         <div class="image">
-            <div>
-                <img src="https://content.imageresizer.com/images/memes/2-gay-black-mens-kissing-thumbnail-url-1hnv2v.jpg"
-                    alt="" width="30" height="30">
-            </div>
+            <img src="{{ asset('storage/assets/logo_cropped.png') }}" alt="logo">
         </div>
         <div class="content">
             <p>Dear {{ $email }},</p>
             <p>We received a request to reset your password. Please use the token below to reset your password.</p>
             <div class="button-container">
-                <a href="http://127.0.0.1:8000/api/auth/reset_password?token={{ $token }}&email={{ $email }}"
+                <a href="{{ env('FRONTEND_URL') }}reset-password?token={{ $token }}&email={{ $email }}"
                     class="button">Reset Password</a>
             </div>
-            <p>If you did not request a password reset, please ignore this email.</p>
+            <p style="bottom-content">If you did not request a password reset,
+                please ignore this email.</p>
         </div>
         <div class="footer">
             <p>If you have any questions, feel free to contact our support team.</p>
