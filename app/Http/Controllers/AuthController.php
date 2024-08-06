@@ -169,7 +169,7 @@ class AuthController extends Controller
             $user = auth()->user();
 
             if (!$user) {
-                return response()->json(['message' => 'User not found']);
+                return response()->json(['message' => 'User not found'], 404);
             }
 
             $roles = $user->getRoleNames();

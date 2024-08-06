@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\CommissionController;
@@ -42,6 +43,7 @@ Route::prefix('auth')->group(function () {
 Route::group(['middleware' => ['jwt.auth', 'verified']], function () {
     Route::get('profile', [AuthController::class, 'me']);
     Route::put('profile/update/{id}', [AuthController::class, 'update']);
+    Route::get('dashboard/stats', [DashboardController::class, 'get_stats']);
     Route::apiResource('roles', RoleController::class);
     Route::get('designs/deleted', [DesignController::class, 'show_deleted']);
     Route::get('designs/recent', [DesignController::class, 'show_recent']);
@@ -55,6 +57,7 @@ Route::group(['middleware' => ['jwt.auth', 'verified']], function () {
     Route::apiResource('commissions', CommissionController::class);
     Route::apiResource('adjustments', AdjustmentController::class);
     Route::get('display/{id}', [UserController::class, 'display'])->name('profile');
+    Route::post('role/{id}', [UserController::class, 'assign_new_role']);
     Route::apiResource('materials', MaterialController::class);
     Route::apiResource('colors', ColorController::class);
     Route::apiResource('sizes', SizeController::class);
