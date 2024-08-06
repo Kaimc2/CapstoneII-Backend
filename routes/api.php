@@ -61,3 +61,8 @@ Route::group(['middleware' => ['jwt.auth', 'verified']], function () {
     Route::apiResource('store/sizes', StoreSizeController::class);
     Route::apiResource('users', UserController::class);
 });
+
+Route::get('test', function () {
+    return 'Test route is working!';
+});
+

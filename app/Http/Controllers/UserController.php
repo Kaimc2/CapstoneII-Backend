@@ -154,7 +154,7 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'profile picture not found'
-            ]);
+            ]); 
         } catch (\Exception $ex) {
             return response()->json([
                 'status' => 'error catching',

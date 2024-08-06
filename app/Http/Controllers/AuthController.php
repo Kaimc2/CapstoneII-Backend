@@ -189,7 +189,7 @@ class AuthController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+        public function update(Request $request, $id)
     {
         try {
             $user = User::find($id);
