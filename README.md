@@ -7,6 +7,8 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+Link to the Frontend: [LetDesign](https://github.com/Kaimc2/LetDesign)
+
 ## Installation
 
 Initial Install run:
